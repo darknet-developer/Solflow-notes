@@ -1876,16 +1876,23 @@ const dashboardStyles = `
   }
 }
 
-/* Sticky lock: final override to defeat older duplicate rules above */
+/* Connected top strip lock: keep one integrated strip, no floating/sticky */
 .editor {
   overflow-y:auto!important;
   overflow-x:hidden!important;
   position:relative;
 }
 .editor-strip {
-  position:sticky!important;
-  top:0!important;
-  z-index:40!important;
+  position:relative!important;
+  top:auto!important;
+  z-index:6!important;
+  margin:0!important;
+  min-height:58px!important;
+  border-radius:0!important;
+  border-left:none!important;
+  border-right:none!important;
+  border-top:none!important;
+  box-shadow:none!important;
 }
 .editor-workspace,
 .editor-canvas,
@@ -1897,6 +1904,14 @@ const dashboardStyles = `
 }
 .ed-body {
   overflow:visible!important;
+}
+.strip-head,
+.toolbar-group {
+  flex-shrink:0;
+}
+.editor-strip .toolbar-group {
+  border:none!important;
+  padding:0!important;
 }
 `;
 
