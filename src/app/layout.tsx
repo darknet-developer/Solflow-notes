@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SecondBrain",
+  title: "Solflow",
   description: "Private AI memory workspace built natively on Solana.",
 };
 

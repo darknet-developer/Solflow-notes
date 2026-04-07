@@ -1475,7 +1475,7 @@ function AgentCommandCenterPanel() {
         }}>
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontFamily: "'Outfit'", fontSize: 14, fontWeight: 500, color: AGENT_C.t1, letterSpacing: "-0.01em" }}>SecondBrain Agent</span>
+              <span style={{ fontFamily: "'Outfit'", fontSize: 14, fontWeight: 500, color: AGENT_C.t1, letterSpacing: "-0.01em" }}>Solflow Agent</span>
               <span className="badge" style={{ background: AGENT_C.mintD, color: AGENT_C.mint, border: `1px solid rgba(94,234,212,0.15)`, padding: "1px 8px" }}>
                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: AGENT_C.mint, animation: "pulse 2s ease-in-out infinite" }} />
                 ACTIVE

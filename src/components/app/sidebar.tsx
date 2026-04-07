@@ -298,13 +298,13 @@ export function Sidebar({
               <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
             </svg>
           </div>
-          <div className="footer-row credits-row" title="AI credits: 12.40 USDC">
+          <div className="footer-row credits-row" title="AI credits: 12.40 SOL">
             <svg className="footer-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <path d="M12 6v12M15 9.5a3 3 0 00-3-2.5H9.5a3 3 0 000 5H14a3 3 0 010 5H9a3 3 0 01-3-2.5" />
             </svg>
             <span className="footer-label hide-c">AI credits</span>
-            <span className="footer-val amber hide-c">12.40 USDC</span>
+            <span className="footer-val amber hide-c">12.40 SOL</span>
           </div>
         </div>
       </div>

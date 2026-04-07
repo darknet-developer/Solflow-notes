@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "SecondBrain",
+  name: "Solflow",
   description: "Private AI memory workspace built natively on Solana.",
   routes: {
     marketing: "/",

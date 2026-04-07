@@ -27,13 +27,6 @@ const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-const greet = (): string => {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-};
-
 export function ContextStripGlass() {
   const today = useMemo(() => new Date(), []);
   const [sol, setSol] = useState<SolState>(MOCK.sol);
@@ -56,11 +49,9 @@ export function ContextStripGlass() {
       <style>{CSS}</style>
 
       <nav className="g-strip" aria-label="Dashboard context strip">
-        <span className="g-crumb">SECONDBRAIN / HOME</span>
-
         <div className="g-row1">
           <div className="g-left">
-            <h1 className="g-greet">{greet()}</h1>
+            <span className="g-small-home">SOLFLOW / HOME</span>
             <span className="g-date">
               {LONG[today.getDay()].slice(0, 3)}, {MO[today.getMonth()]} {today.getDate()}
             </span>
@@ -146,6 +137,7 @@ const CSS = `
 .g-crumb{position:absolute;top:8px;left:var(--strip-pad-x);z-index:2;font-size:9px;font-weight:500;letter-spacing:2px;color:var(--tx3);text-transform:uppercase}
 .g-row1{display:flex;align-items:center;gap:10px;padding:22px var(--strip-pad-x) 8px;flex-wrap:wrap}
 .g-left{display:flex;align-items:baseline;gap:10px;flex-shrink:0}
+.g-small-home{font-size:10px;font-weight:500;letter-spacing:1.6px;color:var(--tx3);text-transform:uppercase}
 .g-greet{font-size:34px;font-weight:600;letter-spacing:-0.4px;color:var(--tx);white-space:nowrap;margin:0}
 .g-date{font-size:12px;font-weight:400;color:var(--tx2);white-space:nowrap}
 .g-tz{font-size:9px;font-weight:500;color:var(--tx3);background:var(--glass);border:1px solid var(--glass-border);padding:2px 8px;border-radius:var(--rp)}

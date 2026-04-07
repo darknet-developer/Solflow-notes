@@ -29,7 +29,7 @@ type NotepadWorkspaceProps = {
   initialNoteId?: string;
 };
 
-const STORAGE_KEY = "secondbrain.notepad.v1";
+const STORAGE_KEY = "solflow.notepad.v1";
 
 const DEFAULT_NOTES: NotepadNote[] = [
   {

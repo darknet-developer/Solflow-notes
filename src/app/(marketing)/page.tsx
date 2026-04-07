@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function MarketingPage() {
-  redirect("/secondbrain_landing.html");
+  redirect("/solflow_landing.html");
 }
