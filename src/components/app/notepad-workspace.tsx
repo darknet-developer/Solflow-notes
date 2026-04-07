@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TradeTemplateCard } from "@/components/app/trade-template-card";
 
@@ -125,6 +125,7 @@ function ensureSelectedNote(notes: NotepadNote[], preferredId?: string): string 
 export function NotepadWorkspace({ initialNoteId }: NotepadWorkspaceProps) {
   const router = useRouter();
   const saveIdleTimeoutRef = useRef<number | null>(null);
+  const noteBodyTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [notes, setNotes] = useState<NotepadNote[]>(() => {
     const seeded = readStoredNotes();
@@ -171,6 +172,14 @@ export function NotepadWorkspace({ initialNoteId }: NotepadWorkspaceProps) {
   const activeNote = useMemo(() => {
     return notes.find((note) => note.id === selectedId) ?? notes[0] ?? null;
   }, [notes, selectedId]);
+
+  useLayoutEffect(() => {
+    const textarea = noteBodyTextareaRef.current;
+    if (!textarea) return;
+
+    textarea.style.height = "0px";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [activeNote?.id, activeNote?.body]);
 
   const persist = (nextNotes: NotepadNote[]) => {
     const next = sortByUpdatedDesc(nextNotes);
@@ -281,7 +290,7 @@ export function NotepadWorkspace({ initialNoteId }: NotepadWorkspaceProps) {
   };
 
   return (
-    <section className="flex h-[100dvh] min-h-0 overflow-hidden border border-white/10 bg-[#0b0d17] text-[#e8eaf7]">
+    <section className="flex min-h-[100dvh] border border-white/10 bg-[#0b0d17] text-[#e8eaf7]">
       <aside className="flex h-full w-[320px] min-w-[320px] flex-col border-r border-white/10 bg-[#0c1120]">
         <div className="border-b border-white/10 p-4">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#7f89a8]">Notepad</p>
@@ -339,7 +348,7 @@ export function NotepadWorkspace({ initialNoteId }: NotepadWorkspaceProps) {
         </div>
 
         {activeNote ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-5">
+          <div className="flex flex-1 flex-col p-5">
             <input
               value={activeNote.title}
               onChange={(event) => updateActiveNote({ title: event.target.value, body: activeNote.body })}
@@ -400,10 +409,11 @@ export function NotepadWorkspace({ initialNoteId }: NotepadWorkspaceProps) {
             ) : null}
 
             <textarea
+              ref={noteBodyTextareaRef}
               value={activeNote.body}
               onChange={(event) => updateActiveNote({ title: activeNote.title, body: event.target.value })}
               placeholder="Write your note..."
-              className="mt-5 min-h-0 flex-1 w-full resize-none rounded-xl border border-white/10 bg-[#0a1020] p-4 text-sm leading-7 text-[#d4dcfa] outline-none transition placeholder:text-[#6d7594] focus:border-[#3659ad]"
+              className="mt-5 min-h-[220px] w-full overflow-hidden resize-none rounded-xl border border-white/10 bg-[#0a1020] p-4 text-sm leading-7 text-[#d4dcfa] outline-none transition placeholder:text-[#6d7594] focus:border-[#3659ad]"
             />
           </div>
         ) : (

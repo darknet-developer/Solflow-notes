@@ -19,7 +19,7 @@ const MOCK: MockState = {
   queue: 12,
   review: 3,
   alerts: 2,
-  sol: { price: 148.32, pct: 2.4 },
+  sol: { price: 79.94, pct: 2.4 },
   pnl: { value: 142.3 },
 };
 

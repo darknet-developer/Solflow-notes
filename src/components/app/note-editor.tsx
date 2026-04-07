@@ -1,5 +1,6 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { AgentPopupBar } from "@/components/app/agent-popup-bar";
+import { EditorTopStrip } from "@/components/app/editor-top-strip";
 import { CodeInsertBlock } from "@/components/app/editor-blocks/code-insert-block";
 import { TradeInsertBlock } from "@/components/app/editor-blocks/trade-insert-block";
 import { CodeBlock } from "@/components/app/note-content-primitives";
@@ -18,6 +19,8 @@ type NoteEditorProps = {
   copiedCode: boolean;
   aiValue: string;
   agentOpen: boolean;
+  leftPanel?: ReactNode;
+  rightPanel?: ReactNode;
   onTogglePanel: () => void;
   onToggleDetails: () => void;
   onToggleAgent: () => void;
@@ -25,6 +28,7 @@ type NoteEditorProps = {
   onDraftBodyChange: (value: string) => void;
   onInsertCodeBlock: () => void;
   onInsertTradeBlock: () => void;
+  onExportPdf: (payload: { title: string; html: string }) => void;
   onCodeBlockChange: (blockId: string, code: string) => void;
   onTradeBlockChange: (blockId: string, trade: TradeTemplateBlock) => void;
   onRemoveBlock: (blockId: string) => void;
@@ -35,6 +39,14 @@ type NoteEditorProps = {
   onAskAi: () => void;
   onAiShortcut: (value: string) => void;
 };
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 export function NoteEditor({
   note,
@@ -47,6 +59,8 @@ export function NoteEditor({
   copiedCode,
   aiValue,
   agentOpen,
+  leftPanel,
+  rightPanel,
   onTogglePanel,
   onToggleDetails,
   onToggleAgent,
@@ -54,6 +68,7 @@ export function NoteEditor({
   onDraftBodyChange,
   onInsertCodeBlock,
   onInsertTradeBlock,
+  onExportPdf,
   onCodeBlockChange,
   onTradeBlockChange,
   onRemoveBlock,
@@ -64,47 +79,170 @@ export function NoteEditor({
   onAskAi,
   onAiShortcut,
 }: NoteEditorProps) {
-  const draftTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const textTools: Array<[string, number]> = [
+    ["B", 0],
+    ["I", 1],
+    ["U", 2],
+    ["H1", 3],
+    ["H2", 4],
+    ["LIST", 5],
+  ];
+  const middleTools: Array<[string, number]> = [
+    ["CODE", 6],
+    ["TRADE", 9],
+  ];
+  const rightTools: Array<[string, number]> = [
+    ["PDF", 7],
+    ["IMG", 8],
+  ];
+
+  const draftEditorRef = useRef<HTMLDivElement | null>(null);
+  const noteContentRef = useRef<HTMLDivElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const [formatState, setFormatState] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    h1: false,
+    h2: false,
+    list: false,
+  });
   const noteContent = note ? NOTE_CONTENT[note.contentKey] : null;
 
-  const applyInlineFormat = (item: string) => {
+  useLayoutEffect(() => {
+    if (note) return;
+    const editor = draftEditorRef.current;
+    if (!editor) return;
+    if (editor.innerHTML !== draftBody) {
+      editor.innerHTML = draftBody;
+    }
+  }, [draftBody, note]);
+
+  useEffect(() => {
+    if (note) {
+      setFormatState({ bold: false, italic: false, underline: false, h1: false, h2: false, list: false });
+      return;
+    }
+
+    const syncState = () => {
+      const editor = draftEditorRef.current;
+      if (!editor) return;
+      const selection = window.getSelection();
+      const anchorNode = selection?.anchorNode ?? null;
+      const inEditor = !!anchorNode && editor.contains(anchorNode);
+      if (!inEditor) return;
+
+      const formatBlock = (document.queryCommandValue("formatBlock") || "").toString().toLowerCase();
+      setFormatState({
+        bold: document.queryCommandState("bold"),
+        italic: document.queryCommandState("italic"),
+        underline: document.queryCommandState("underline"),
+        h1: formatBlock === "h1",
+        h2: formatBlock === "h2",
+        list: document.queryCommandState("insertUnorderedList"),
+      });
+    };
+
+    document.addEventListener("selectionchange", syncState);
+    return () => document.removeEventListener("selectionchange", syncState);
+  }, [note]);
+
+  const applyEditorFormat = (item: string) => {
     if (note) {
       return;
     }
 
-    const textarea = draftTextareaRef.current;
-    if (!textarea) {
+    const editor = draftEditorRef.current;
+    if (!editor) {
+      return;
+    }
+    editor.focus();
+
+    if (item === "B") {
+      document.execCommand("bold");
+    } else if (item === "I") {
+      document.execCommand("italic");
+    } else if (item === "U") {
+      document.execCommand("underline");
+    } else if (item === "H1") {
+      const isH1 = (document.queryCommandValue("formatBlock") || "").toString().toLowerCase() === "h1";
+      document.execCommand("formatBlock", false, isH1 ? "div" : "h1");
+    } else if (item === "H2") {
+      const isH2 = (document.queryCommandValue("formatBlock") || "").toString().toLowerCase() === "h2";
+      document.execCommand("formatBlock", false, isH2 ? "div" : "h2");
+    } else if (item === "LIST") {
+      document.execCommand("insertUnorderedList");
+    } else {
       return;
     }
 
-    const selectionStart = textarea.selectionStart;
-    const selectionEnd = textarea.selectionEnd;
-    const selectedText = draftBody.slice(selectionStart, selectionEnd);
+    onDraftBodyChange(editor.innerHTML);
 
-    const wrappers: Record<string, { prefix: string; suffix: string }> = {
-      B: { prefix: "**", suffix: "**" },
-      I: { prefix: "*", suffix: "*" },
-      U: { prefix: "<u>", suffix: "</u>" },
-    };
-
-    const wrapper = wrappers[item];
-    if (!wrapper) {
-      return;
-    }
-
-    const hasSelection = selectionStart !== selectionEnd;
-    const content = hasSelection ? selectedText : "text";
-    const replacement = `${wrapper.prefix}${content}${wrapper.suffix}`;
-    const nextBody = `${draftBody.slice(0, selectionStart)}${replacement}${draftBody.slice(selectionEnd)}`;
-
-    onDraftBodyChange(nextBody);
-
-    requestAnimationFrame(() => {
-      const nextCursorStart = selectionStart + wrapper.prefix.length;
-      const nextCursorEnd = hasSelection ? nextCursorStart + content.length : nextCursorStart + 4;
-      textarea.focus();
-      textarea.setSelectionRange(nextCursorStart, nextCursorEnd);
+    const formatBlock = (document.queryCommandValue("formatBlock") || "").toString().toLowerCase();
+    setFormatState({
+      bold: document.queryCommandState("bold"),
+      italic: document.queryCommandState("italic"),
+      underline: document.queryCommandState("underline"),
+      h1: formatBlock === "h1",
+      h2: formatBlock === "h2",
+      list: document.queryCommandState("insertUnorderedList"),
     });
+  };
+
+  const insertImageAtCursor = (src: string) => {
+    if (note) {
+      return;
+    }
+
+    const editor = draftEditorRef.current;
+    if (!editor) {
+      return;
+    }
+
+    editor.focus();
+    const image = document.createElement("img");
+    image.src = src;
+    image.alt = "Uploaded image";
+
+    const wrapper = document.createElement("p");
+    wrapper.appendChild(image);
+    wrapper.appendChild(document.createElement("br"));
+
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      if (editor.contains(range.commonAncestorContainer)) {
+        range.deleteContents();
+        range.insertNode(wrapper);
+        range.setStartAfter(wrapper);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } else {
+        editor.appendChild(wrapper);
+      }
+    } else {
+      editor.appendChild(wrapper);
+    }
+
+    onDraftBodyChange(editor.innerHTML);
+  };
+
+  const handleImageFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !file.type.startsWith("image/")) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") {
+        insertImageAtCursor(result);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const codeBlock = useMemo(() => {
@@ -137,80 +275,135 @@ const calcPos = (book: number, pct: number, entry: number) => ({
     return null;
   }, [note]);
 
+  const renderToolbarButton = (item: string, index: number) => (
+    <button
+      key={item}
+      type="button"
+      className={`tb-btn${
+        item === "B"
+          ? formatState.bold
+            ? " on"
+            : ""
+          : item === "I"
+            ? formatState.italic
+              ? " on"
+              : ""
+            : item === "U"
+              ? formatState.underline
+                ? " on"
+                : ""
+              : item === "H1"
+                ? formatState.h1
+                  ? " on"
+                  : ""
+                : item === "H2"
+                  ? formatState.h2
+                    ? " on"
+                    : ""
+                  : item === "LIST"
+                    ? formatState.list
+                      ? " on"
+                      : ""
+                    : toolbarActive.includes(index)
+                      ? " on"
+                      : ""
+      }`}
+      onClick={() => {
+        if (item === "CODE") {
+          onInsertCodeBlock();
+          return;
+        }
+        if (item === "TRADE") {
+          onInsertTradeBlock();
+          return;
+        }
+        if (item === "PDF") {
+          const html = note
+            ? noteContentRef.current?.innerHTML ?? ""
+            : (() => {
+                const bodyHtml = draftEditorRef.current?.innerHTML ?? "";
+                const blocksHtml = draftBlocks
+                  .map((block) => {
+                    if (block.type === "code") {
+                      return `<section class="pdf-block pdf-code">
+  <h3>Code</h3>
+  <pre><code>${escapeHtml(block.code)}</code></pre>
+</section>`;
+                    }
+
+                    const trade = block.trade;
+                    return `<section class="pdf-block pdf-trade">
+  <h3>${escapeHtml(trade.pair || "Trade")}</h3>
+  <div class="pdf-trade-grid">
+    <div><span>Entry</span><strong>${escapeHtml(trade.entry)}</strong></div>
+    <div><span>Current</span><strong>${escapeHtml(trade.current)}</strong></div>
+    <div><span>Invalidation</span><strong>${escapeHtml(trade.invalidation)}</strong></div>
+    <div><span>Conviction</span><strong>${escapeHtml(trade.conviction)}</strong></div>
+  </div>
+  <p>${escapeHtml(trade.thesis)}</p>
+</section>`;
+                  })
+                  .join("");
+                return `${bodyHtml}${blocksHtml}`;
+              })();
+          onExportPdf({ title, html });
+          return;
+        }
+        if (item === "IMG") {
+          if (note) {
+            return;
+          }
+          if (imageInputRef.current) {
+            imageInputRef.current.value = "";
+            imageInputRef.current.click();
+          }
+          return;
+        }
+        if (item === "B" || item === "I" || item === "U" || item === "H1" || item === "H2" || item === "LIST") {
+          applyEditorFormat(item);
+          return;
+        }
+        onToggleToolbar(index);
+      }}
+    >
+      {item}
+    </button>
+  );
+
   return (
-    <div className="editor">
-      <div className="editor-topbar">
-        <div className="breadcrumb">
-          <span>{note ? VIEW_LABELS[note.view] : "Trade journal"}</span>
-          <span className="bc-sep">/</span>
-          <span>{title}</span>
-        </div>
-        <div className="ed-actions">
-          <button
-            type="button"
-            className={`tb-icon${panelHidden ? " active" : ""}`}
-            onClick={onTogglePanel}
-            title="Toggle list"
-          >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <rect x="1" y="1" width="5" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
-              <rect x="8" y="1" width="4" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className={`tb-icon${detailsHidden ? " active" : ""}`}
-            onClick={onToggleDetails}
-            title="Toggle details"
-          >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <rect x="1" y="1" width="4" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
-              <rect x="7" y="1" width="5" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
-            </svg>
-          </button>
-          {note?.notarized ? (
-            <div className="notarized-pill">
-              <div className="np-dot" />
-              notarized on-chain
-            </div>
-          ) : null}
-          <button type="button" className="act-btn" onClick={onShare}>
-            Share
-          </button>
-          <button type="button" className="act-btn primary" onClick={onToggleAgent}>
-            Agent
-          </button>
-        </div>
-      </div>
+    <div className={`editor${!panelHidden ? " with-left" : ""}${!detailsHidden ? " with-details" : ""}${panelHidden && detailsHidden ? " full-canvas" : ""}`}>
+      <EditorTopStrip
+        viewLabel={note ? VIEW_LABELS[note.view] : "Trade journal"}
+        title={title}
+        panelHidden={panelHidden}
+        detailsHidden={detailsHidden}
+        notarized={Boolean(note?.notarized)}
+        onTogglePanel={onTogglePanel}
+        onToggleDetails={onToggleDetails}
+        onShare={onShare}
+        onToggleAgent={onToggleAgent}
+        textTools={textTools.map(([item, index]) => renderToolbarButton(item, index))}
+        blockTools={middleTools.map(([item, index]) => renderToolbarButton(item, index))}
+        mediaTools={rightTools.map(([item, index]) => renderToolbarButton(item, index))}
+      />
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageFileChange}
+      />
 
-      <div className="toolbar">
-        {["B", "I", "U", "H1", "H2", "LIST", "CODE", "PDF", "IMG", "TRADE"].map((item, index) => (
-          <button
-            key={item}
-            type="button"
-            className={`tb-btn${toolbarActive.includes(index) ? " on" : ""}`}
-            onClick={() => {
-              if (item === "CODE") {
-                onInsertCodeBlock();
-                return;
-              }
-              if (item === "TRADE") {
-                onInsertTradeBlock();
-                return;
-              }
-              if (item === "B" || item === "I" || item === "U") {
-                applyInlineFormat(item);
-              }
-              onToggleToolbar(index);
-            }}
-          >
-            {item}
-          </button>
-        ))}
-      </div>
-
-      <div className="ed-body">
-        <input className="note-title" value={title} onChange={(event) => onTitleChange(event.target.value)} />
+      <div className="editor-workspace">
+        {!panelHidden && leftPanel ? <div className="editor-left-panel">{leftPanel}</div> : null}
+        <div className="editor-canvas">
+          <div className="ed-body">
+            <input
+              className="note-title"
+              value={title}
+              onChange={(event) => onTitleChange(event.target.value)}
+              placeholder="Untitled"
+            />
         <div className="note-meta">
           {note?.meta.Created ? <div className="meta-item">{note.meta.Created}</div> : null}
           {note?.meta.Folder ? (
@@ -245,7 +438,7 @@ const calcPos = (book: number, pct: number, entry: number) => ({
           {!note ? <div className="meta-item">Just now</div> : null}
         </div>
 
-        <div className={`note-content${!note ? " draft" : ""}`}>
+        <div ref={noteContentRef} className={`note-content${!note ? " draft" : ""}`}>
           {note ? (
             <>
               {noteContent}
@@ -259,12 +452,13 @@ const calcPos = (book: number, pct: number, entry: number) => ({
               ) : null}
             </>
           ) : (
-            <textarea
-              ref={draftTextareaRef}
-              value={draftBody}
-              onChange={(event) => onDraftBodyChange(event.target.value)}
+            <div
+              ref={draftEditorRef}
+              contentEditable
+              suppressContentEditableWarning
+              onInput={(event) => onDraftBodyChange(event.currentTarget.innerHTML)}
               className="draft-textarea resize-none border-none bg-transparent px-0 py-0 text-[15px] leading-[1.85] text-[var(--text2)] outline-none placeholder:text-[var(--text3)]"
-              placeholder="Start writing..."
+              data-placeholder="Start writing..."
             />
           )}
 
@@ -288,6 +482,9 @@ const calcPos = (book: number, pct: number, entry: number) => ({
               )
             : null}
         </div>
+          </div>
+        </div>
+        {!detailsHidden && rightPanel ? <div className="editor-right-panel">{rightPanel}</div> : null}
       </div>
       {agentOpen ? (
         <AgentPopupBar

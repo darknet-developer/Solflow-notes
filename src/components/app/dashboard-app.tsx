@@ -422,7 +422,30 @@ const dashboardStyles = `
   min-width:0;
   height:100%;
   background:var(--bg);
-  overflow:hidden}
+  overflow-y:auto;
+  overflow-x:hidden}
+.editor-strip {
+  position:sticky;
+  top:0;
+  z-index:12;
+  min-height:64px;
+  margin:0 12px;
+  padding:0 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  border:1px solid rgba(165, 148, 224, .18);
+  border-radius:24px;
+  background:var(--bg2);
+  box-shadow:0 8px 24px rgba(0, 0, 0, .28);
+}
+.strip-head {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
 .editor-topbar {
   height:50px;
   border-bottom:1px solid var(--border);
@@ -468,8 +491,18 @@ const dashboardStyles = `
   border-bottom:1px solid var(--border);
   display:flex;
   align-items:center;
-  gap:6px;
+  justify-content:space-between;
+  gap:14px;
   flex-wrap:wrap}
+.toolbar-group {
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.toolbar-group.mid {
+  padding-inline:12px;
+  border-inline:1px solid var(--border);
+}
 .tb-btn {
   min-width:28px;
   height:28px;
@@ -482,13 +515,39 @@ const dashboardStyles = `
 .tb-btn.on {
   background:var(--accent-d);
   color:var(--accent)}
+@media (max-width:1100px) {
+  .toolbar {
+    justify-content:flex-start;
+  }
+  .toolbar-group.mid {
+    border-inline:none;
+    padding-inline:0;
+  }
+}
+@media (max-width:1100px) {
+  .editor-strip {
+    flex-wrap:wrap;
+    justify-content:flex-start;
+    padding-top:8px;
+    padding-bottom:8px;
+    min-height:auto;
+    border-radius:20px;
+    top:8px;
+    margin:8px 8px 0;
+  }
+  .strip-head {
+    width:100%;
+    justify-content:space-between;
+  }
+}
 .ed-body {
   flex:1;
   display:flex;
   flex-direction:column;
   min-height:0;
   height:100%;
-  overflow:hidden;
+  overflow-y:auto;
+  overflow-x:hidden;
   padding:64px 60px 44px}
 .note-title {
   font-family:"Playfair Display", serif;
@@ -522,18 +581,57 @@ const dashboardStyles = `
   max-width:700px}
 .note-content.draft {
   max-width:none;
-  flex:1;
-  min-height:0;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
+  display:block;
 }
 .draft-textarea {
-  flex:1;
-  min-height:0;
-  height:100%;
+  min-height:220px;
+  height:auto;
   width:100%;
-  overflow-y:auto;
+  overflow:hidden;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.draft-textarea h1 {
+  font-family:"Playfair Display", serif;
+  font-size:34px;
+  line-height:1.2;
+  letter-spacing:-.4px;
+  color:var(--text);
+  margin:18px 0 10px;
+}
+.draft-textarea h2 {
+  font-family:"Playfair Display", serif;
+  font-size:26px;
+  line-height:1.25;
+  letter-spacing:-.25px;
+  color:var(--text);
+  margin:16px 0 8px;
+}
+.draft-textarea ul {
+  list-style:disc;
+  margin:10px 0 10px 24px;
+  padding:0;
+}
+.draft-textarea li {
+  margin:4px 0;
+}
+.draft-textarea p {
+  margin:0 0 10px;
+}
+.draft-textarea img {
+  display:block;
+  width:100%;
+  max-width:min(720px, 100%);
+  height:auto;
+  margin:14px 0;
+  border-radius:10px;
+  border:1px solid var(--border);
+  object-fit:contain;
+}
+.draft-textarea:empty::before {
+  content:attr(data-placeholder);
+  color:var(--text3);
+  pointer-events:none;
 }
 .note-content p {
   margin-bottom:16px}
@@ -1546,6 +1644,260 @@ const dashboardStyles = `
   .tb-actions .tb-action-btn:last-child {
   display:none}
 }
+
+/* Editor Redesign Override (visual only) */
+.editor {
+}
+.editor-topbar {
+  height:56px!important;
+  padding:0 20px!important;
+  border-bottom:1px solid rgba(255, 255, 255, .075)!important;
+}
+.breadcrumb {
+  font-size:12px!important;
+  color:var(--text2)!important;
+  max-width:60%!important;
+}
+.ed-actions {
+  gap:8px!important;
+}
+.act-btn {
+  height:32px!important;
+  padding:0 14px!important;
+  border-radius:9px!important;
+  border:1px solid var(--border2)!important;
+  color:var(--text2)!important;
+}
+.act-btn.primary {
+  border-color:rgba(165, 148, 224, .34)!important;
+  color:var(--accent2)!important;
+}
+.toolbar {
+  min-height:52px!important;
+  padding:0 20px!important;
+  border-bottom:1px solid rgba(255, 255, 255, .075)!important;
+  gap:10px!important;
+}
+.toolbar-group {
+  gap:8px!important;
+}
+.toolbar-group.left,
+.toolbar-group.mid,
+.toolbar-group.right {
+  border:1px solid rgba(255, 255, 255, .07);
+  border-radius:10px;
+  padding:4px;
+}
+.toolbar-group.mid {
+  border-inline:1px solid rgba(255, 255, 255, .07)!important;
+  padding-inline:4px!important;
+}
+.tb-btn {
+  min-width:34px!important;
+  height:32px!important;
+  padding:0 10px!important;
+  border-radius:8px!important;
+  color:var(--text3)!important;
+  font-size:11px!important;
+  letter-spacing:.06em!important;
+}
+.tb-btn:hover {
+  color:var(--accent2)!important;
+}
+.tb-btn.on {
+  color:var(--accent2)!important;
+  border:1px solid rgba(165, 148, 224, .38)!important;
+}
+.ed-body {
+  padding:38px 56px 56px!important;
+  overflow:visible!important;
+}
+.ed-body > .note-title,
+.ed-body > .note-meta,
+.ed-body > .note-content {
+  width:min(980px, 100%);
+  margin-left:auto;
+  margin-right:auto;
+}
+.editor.with-left .ed-body {
+  padding-left:20px!important;
+}
+.editor.with-left .ed-body > .note-title,
+.editor.with-left .ed-body > .note-meta,
+.editor.with-left .ed-body > .note-content {
+  width:100%;
+  max-width:none!important;
+  margin-left:0;
+  margin-right:0;
+}
+.note-title {
+  font-size:52px!important;
+  line-height:1.04!important;
+  margin-bottom:10px!important;
+  color:var(--text)!important;
+}
+.note-meta {
+  margin-bottom:24px!important;
+  padding-bottom:16px!important;
+  font-size:12px!important;
+  color:var(--text3)!important;
+  border-bottom:1px solid rgba(255, 255, 255, .075)!important;
+}
+.note-content {
+  font-size:15px!important;
+  line-height:1.85!important;
+  color:var(--text2)!important;
+}
+.draft-textarea {
+  min-height:300px!important;
+  border-radius:12px;
+  padding:6px 2px!important;
+}
+.trade-card,
+.code-block,
+.chain-card {
+  border:1px solid rgba(255, 255, 255, .1)!important;
+  border-radius:12px!important;
+}
+
+/* Shared panel layout: collapsed = full-width canvas */
+.editor-workspace {
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0, 1fr);
+  transition:none!important;
+}
+.editor.with-left .editor-workspace {
+  grid-template-columns:292px minmax(0, 1fr);
+}
+.editor.with-details .editor-workspace {
+  grid-template-columns:minmax(0, 1fr) 332px;
+}
+.editor.with-left.with-details .editor-workspace {
+  grid-template-columns:292px minmax(0, 1fr) 332px;
+}
+.editor.full-canvas .editor-workspace {
+  grid-template-columns:minmax(0, 1fr)!important;
+}
+.editor-canvas {
+  min-width:0;
+  min-height:0;
+  height:auto;
+}
+.editor-left-panel {
+  min-width:0;
+  border-right:1px solid rgba(255, 255, 255, .1);
+  background:var(--bg2);
+  overflow:hidden;
+  display:block;
+}
+.editor-left-panel .panel {
+  width:100%!important;
+  min-width:0!important;
+  height:100%!important;
+  border:none!important;
+  background:transparent!important;
+}
+.editor-right-panel {
+  min-width:0;
+  width:100%;
+  border-left:1px solid rgba(255, 255, 255, .1);
+  background:var(--bg2);
+  overflow:hidden;
+  display:block;
+}
+.editor.full-canvas .editor-left-panel,
+.editor.full-canvas .editor-right-panel {
+  display:none!important;
+}
+.rp {
+  width:100%!important;
+  min-width:0!important;
+  height:100%!important;
+  border:none!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:hidden;
+}
+.rp.hidden {
+  width:100%!important;
+  min-width:0!important;
+  border:none!important;
+}
+.rp-head {
+  background:rgba(255, 255, 255, .01);
+  border-bottom:1px solid rgba(255, 255, 255, .08)!important;
+}
+.rp-tabs {
+  border-bottom:1px solid rgba(255, 255, 255, .08)!important;
+}
+.rp-body {
+  padding:14px!important;
+}
+.editor.full-canvas .ed-body {
+  padding:0!important;
+}
+.editor.full-canvas .ed-body > .note-title,
+.editor.full-canvas .ed-body > .note-meta,
+.editor.full-canvas .ed-body > .note-content {
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding-left:24px!important;
+  padding-right:24px!important;
+  min-width:0!important;
+}
+.editor.full-canvas .note-title {
+  margin-top:28px!important;
+}
+@media (max-width: 1024px) {
+  .editor.with-left .editor-workspace {
+    grid-template-columns:272px minmax(0, 1fr);
+  }
+  .editor.with-details .editor-workspace {
+    grid-template-columns:minmax(0, 1fr) 300px;
+  }
+  .editor.with-left.with-details .editor-workspace {
+    grid-template-columns:272px minmax(0, 1fr) 300px;
+  }
+  .editor.full-canvas .ed-body > .note-title,
+  .editor.full-canvas .ed-body > .note-meta,
+  .editor.full-canvas .ed-body > .note-content {
+    padding-left:16px!important;
+    padding-right:16px!important;
+  }
+}
+@media (max-width: 860px) {
+  .editor-left-panel,
+  .editor-right-panel {
+    display:none;
+  }
+}
+
+/* Sticky lock: final override to defeat older duplicate rules above */
+.editor {
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  position:relative;
+}
+.editor-strip {
+  position:sticky!important;
+  top:0!important;
+  z-index:40!important;
+}
+.editor-workspace,
+.editor-canvas,
+.ed-body {
+  height:auto!important;
+  max-height:none!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+.ed-body {
+  overflow:visible!important;
+}
 `;
 
 const dashboardStabilityStyles = `
@@ -1567,15 +1919,15 @@ body{overflow:hidden!important}
 
 export function DashboardApp() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [panelHidden, setPanelHidden] = useState(false);
-  const [detailsHidden, setDetailsHidden] = useState(false);
+  const [panelHidden, setPanelHidden] = useState(true);
+  const [detailsHidden, setDetailsHidden] = useState(true);
   const [activeView, setActiveView] = useState<NoteView>("home");
   const [activeFilter, setActiveFilter] = useState<NoteFilter>("all");
   const [activeNoteId, setActiveNoteId] = useState<NoteId | null>(null);
   const [detailsTab, setDetailsTab] = useState<"info" | "linked" | "chain">("info");
   const [search, setSearch] = useState("");
   const [compactView, setCompactView] = useState(true);
-  const [toolbarActive, setToolbarActive] = useState<number[]>([0]);
+  const [toolbarActive, setToolbarActive] = useState<number[]>([]);
   const [editorTitle, setEditorTitle] = useState("Home");
   const [aiValue, setAiValue] = useState("");
   const [toast, setToast] = useState("");
@@ -1618,6 +1970,13 @@ export function DashboardApp() {
       setActiveNoteId(filteredNotes[0].id);
     }
   }, [activeNoteId, draftMode, filteredNotes]);
+
+  useEffect(() => {
+    if (!activeNote) {
+      setPanelHidden(true);
+      setDetailsHidden(true);
+    }
+  }, [activeNote]);
 
   useEffect(() => {
     if (!toast) return;
@@ -1717,6 +2076,101 @@ export function DashboardApp() {
     }
   };
 
+  const handleExportPdf = ({ title, html }: { title: string; html: string }) => {
+    const escapeHtml = (value: string) =>
+      value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const printableTitle = title.trim() || "Untitled note";
+    const printableHtml = html.trim() || "<p></p>";
+    const safeTitle = escapeHtml(printableTitle);
+    const popup = window.open("", "_blank", "width=1024,height=768");
+
+    if (!popup) {
+      showToast("Popup blocked. Allow popups to export PDF.");
+      return;
+    }
+
+    popup.document.open();
+    popup.document.write(`<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>${safeTitle}</title>
+    <style>
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 40px 48px;
+        color: #0f172a;
+        background: #ffffff;
+        font-family: "Georgia", "Times New Roman", serif;
+        line-height: 1.7;
+      }
+      .doc-title {
+        margin: 0 0 22px;
+        font-size: 32px;
+        line-height: 1.2;
+      }
+      .content { font-size: 15px; }
+      .content h1 { font-size: 30px; margin: 18px 0 10px; }
+      .content h2 { font-size: 24px; margin: 16px 0 8px; }
+      .content ul { margin: 10px 0 10px 24px; }
+      .content p { margin: 0 0 10px; }
+      .content pre, .content code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      }
+      .content .pdf-block {
+        border: 1px solid #d5d9e3;
+        border-radius: 10px;
+        padding: 14px;
+        margin: 14px 0;
+      }
+      .content .pdf-block h3 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #475569;
+      }
+      .content .pdf-code pre {
+        margin: 0;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        white-space: pre-wrap;
+      }
+      .content .pdf-trade-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .content .pdf-trade-grid span {
+        display: block;
+        font-size: 11px;
+        color: #64748b;
+        margin-bottom: 2px;
+      }
+      .content .pdf-trade-grid strong {
+        font-size: 16px;
+        color: #0f172a;
+      }
+      @page { size: auto; margin: 14mm; }
+    </style>
+  </head>
+  <body>
+    <h1 class="doc-title">${safeTitle}</h1>
+    <div class="content">${printableHtml}</div>
+  </body>
+</html>`);
+    popup.document.close();
+    popup.onload = () => {
+      popup.focus();
+      popup.print();
+    };
+  };
+
   return (
     <main className={`sb-dashboard${sidebarCollapsed ? " sidebar-collapsed" : ""}`}>
       <style jsx global>{dashboardStyles}</style>
@@ -1745,17 +2199,6 @@ export function DashboardApp() {
           </div>
         ) : (
           <>
-            <NotesPanel
-              hidden={panelHidden}
-              activeView={activeView}
-              activeFilter={activeFilter}
-              compactView={compactView}
-              activeNoteId={draftMode ? null : activeNoteId}
-              notes={filteredNotes}
-              onToggleCompact={setCompactView}
-              onSelectFilter={setActiveFilter}
-              onSelectNote={handleSelectNote}
-            />
             <NoteEditor
               note={activeNote}
               title={editorTitle}
@@ -1767,6 +2210,29 @@ export function DashboardApp() {
               copiedCode={copiedCode}
               aiValue={aiValue}
               agentOpen={agentOpen}
+              leftPanel={
+                <NotesPanel
+                  hidden={false}
+                  activeView={activeView}
+                  activeFilter={activeFilter}
+                  compactView={compactView}
+                  activeNoteId={draftMode ? null : activeNoteId}
+                  notes={filteredNotes}
+                  onToggleCompact={setCompactView}
+                  onSelectFilter={setActiveFilter}
+                  onSelectNote={handleSelectNote}
+                />
+              }
+              rightPanel={
+                <DetailsPanel
+                  hidden={false}
+                  activeTab={detailsTab}
+                  note={activeNote}
+                  onClose={() => setDetailsHidden(true)}
+                  onChangeTab={setDetailsTab}
+                  onToast={showToast}
+                />
+              }
               onTogglePanel={() => setPanelHidden((value) => !value)}
               onToggleDetails={() => setDetailsHidden((value) => !value)}
               onToggleAgent={() => setAgentOpen((value) => !value)}
@@ -1774,6 +2240,7 @@ export function DashboardApp() {
               onDraftBodyChange={setDraftBody}
               onInsertCodeBlock={insertCodeBlock}
               onInsertTradeBlock={insertTradeBlock}
+              onExportPdf={handleExportPdf}
               onCodeBlockChange={handleCodeBlockChange}
               onTradeBlockChange={handleTradeBlockChange}
               onRemoveBlock={handleRemoveDraftBlock}
@@ -1792,14 +2259,6 @@ export function DashboardApp() {
                 }
               }}
               onAiShortcut={setAiValue}
-            />
-            <DetailsPanel
-              hidden={detailsHidden}
-              activeTab={detailsTab}
-              note={activeNote}
-              onClose={() => setDetailsHidden(true)}
-              onChangeTab={setDetailsTab}
-              onToast={showToast}
             />
           </>
         )}
